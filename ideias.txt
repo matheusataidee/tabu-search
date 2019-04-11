@@ -1,0 +1,16 @@
+Feito em alguns minutos só pra anotar ideias e dúvidas durante a aula. Se faltar coisa pode adicionar aqui, senão serve pelo menos de base pra gente começar.
+
+INTENSIFICATION BY RESTART:
+- Guardar aquela lista de "recência" onde a gente guarda as ultimas X soluções (lista ligada pode funcionar, ou uma array já que é um tamanho fixo (só fica chato de atualizar)
+- Depois de X passos sem melhorar a solução, volta pra melhor solução e conta a frequência de cada elemento (se a gente guardar os binários é só somar, se forem os indices a gente cria uma array e usa os indices pra fazer +1, começando tudo em 0)
+- Pega os 2 ou 3 mais frequentes, coloca eles na solução, cria um tabu pra não mexer mais neles e manda rodar de novo
+--- Pelo jeito que o codigo ta funcionando é melhor fazer 2 ou 4, ja que em toda operação atualiza 2
+
+
+STRATEGIC OSCILLATION:
+- Qual a condição pra começar a quebrar as restrições?
+- Ignorar restrições = não checar triplas temporariamente, pode passar um parâmetro extra pra função evaluate pra isso
+- Setar quantas iterações vai passar sem checagem
+- Quando for "voltar", basta fazer uma função que checa a validade; se tem triplas proibidas, pega o elemento de menor contribuição que faz parte de pelo menos uma tripla e tira ele, e tenta checar de novo, até não ter mais restrições quebradas.
+--- Pode ser que isso volte pra onde começou? É um risco do próprio modelo de Strategic Oscillation? Se só deixar voltar sem restrição pode voltar pro mesmo lugar
+--- Como os tabus entram nisso? Talvez precise usar a lista tabu pra proibir os movimentos que foram feitos no espaço inviável pra ter certeza que vai voltar pra um lugar diferente
