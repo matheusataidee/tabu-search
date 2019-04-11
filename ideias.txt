@@ -14,3 +14,4 @@ STRATEGIC OSCILLATION:
 - Quando for "voltar", basta fazer uma função que checa a validade; se tem triplas proibidas, pega o elemento de menor contribuição que faz parte de pelo menos uma tripla e tira ele, e tenta checar de novo, até não ter mais restrições quebradas.
 --- Pode ser que isso volte pra onde começou? É um risco do próprio modelo de Strategic Oscillation? Se só deixar voltar sem restrição pode voltar pro mesmo lugar
 --- Como os tabus entram nisso? Talvez precise usar a lista tabu pra proibir os movimentos que foram feitos no espaço inviável pra ter certeza que vai voltar pra um lugar diferente
+
