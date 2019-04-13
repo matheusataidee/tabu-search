@@ -63,6 +63,7 @@ public abstract class AbstractTS<E> {
 	 */
 	protected Integer iterations;
 	
+	protected Integer searchMethod;
 	/**
 	 * the tabu tenure.
 	 */
@@ -147,13 +148,41 @@ public abstract class AbstractTS<E> {
 	 * @param iterations
 	 *            The number of iterations which the TS will be executed.
 	 */
-	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer iterations) {
+	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer searchMethod, Integer iterations) {
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
+		this.searchMethod = searchMethod;
 		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
 	}
+	
+	private Integer int2ProibitedTupleElement(int i, ProibitedTuple p)
+	{
+		switch(i)
+		{
+		case 0:
+			return p.getX0();
+		case 1:
+			return p.getX1();
+		default:
+			return p.getX2();
+		}
+	}
 
+	protected void repairSolution()
+	{
+		for(ProibitedTuple proibitedTuple : listOfProibitedTuples)
+		{
+			if(incumbentSol.indexOf(proibitedTuple.getX0()) != -1 && incumbentSol.indexOf(proibitedTuple.getX1()) != -1 && incumbentSol.indexOf(proibitedTuple.getX2()) != -1 ){
+                Random gerador = new Random(); 
+                Integer candToRemove = int2ProibitedTupleElement(gerador.nextInt(3), proibitedTuple);
+                incumbentSol.remove(incumbentSol.indexOf(candToRemove));
+                                    
+                ObjFunction.evaluate(incumbentSol);
+			}
+		}
+	}
+	
 	/**
 	 * The TS constructive heuristic, which is responsible for building a
 	 * feasible solution by selecting in a greedy fashion, candidate
@@ -173,7 +202,7 @@ public abstract class AbstractTS<E> {
 
 			Double maxCost = Double.NEGATIVE_INFINITY, minCost = Double.POSITIVE_INFINITY;
 			incumbentCost = incumbentSol.cost;
-			updateCL();
+			repairSolution();
 
 			/*
 			 * Explore all candidate elements to enter the solution, saving the
