@@ -112,9 +112,52 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		sol.cost = 0.0;
 		return sol;
 	}
+	
 	Neighbor firstSearch()
 	{
-		return new Neighbor();
+		Neighbor n = new Neighbor();
+		for (Integer candIn : CL) {
+			Double deltaCost = ObjFunction.evaluateInsertionCost(candIn, incumbentSol);
+			if (!TL.contains(candIn) || incumbentSol.cost+deltaCost < bestSol.cost) {
+				if (deltaCost < n.getMinDeltaCost()) {
+					n.setMinDeltaCost(deltaCost);
+					n.setBestCandIn(candIn);
+					n.setBestCandOut(null);
+					
+					return n;
+				}
+			}
+		}
+		// Evaluate removals
+		for (Integer candOut : incumbentSol) {
+			Double deltaCost = ObjFunction.evaluateRemovalCost(candOut, incumbentSol);
+			if (!TL.contains(candOut) || incumbentSol.cost+deltaCost < bestSol.cost) {
+				if (deltaCost < n.getMinDeltaCost()) {
+					n.setMinDeltaCost(deltaCost);
+					n.setBestCandIn(null);
+					n.setBestCandOut(candOut);
+					
+					return n;
+				}
+			}
+		}
+		// Evaluate exchanges
+		for (Integer candIn : CL) {
+			for (Integer candOut : incumbentSol) {
+				Double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, incumbentSol);
+				if ((!TL.contains(candIn) && !TL.contains(candOut)) || incumbentSol.cost+deltaCost < bestSol.cost) {
+					if (deltaCost < n.getMinDeltaCost()) {
+						n.setMinDeltaCost(deltaCost);
+						n.setBestCandIn(candIn);
+						n.setBestCandOut(candOut);
+						
+						return n;
+					}
+				}
+			}
+		}
+		
+		return n;
 	}
 
 	private Neighbor bestSearch()
@@ -170,8 +213,6 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		repairSolution();
 		
 		Neighbor n = (this.searchMethod == FIRST_IMPROVEMENT) ? firstSearch():bestSearch();
-		
-		
 		
 		// Implement the best non-tabu move
 		TL.poll();
