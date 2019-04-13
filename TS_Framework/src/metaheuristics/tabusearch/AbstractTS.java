@@ -5,10 +5,13 @@ package metaheuristics.tabusearch;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import problems.Evaluator;
 import solutions.Solution;
+import utils.ProibitedTuple;
+import utils.Utils;
 
 /**
  * Abstract class for metaheuristic Tabu Search. It consider a minimization problem.
@@ -79,6 +82,8 @@ public abstract class AbstractTS<E> {
 	 * the Tabu List of elements to enter the solution.
 	 */
 	protected ArrayDeque<E> TL;
+	
+	protected List<ProibitedTuple> listOfProibitedTuples;
 
 	/**
 	 * Creates the Candidate List, which is an ArrayList of candidate elements
@@ -146,6 +151,7 @@ public abstract class AbstractTS<E> {
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
+		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
 	}
 
 	/**

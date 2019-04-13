@@ -373,9 +373,11 @@ public class QBF implements Evaluator<Integer> {
 		}
 		System.out.println("x = " + Arrays.toString(qbf.variables));
 		System.out.println("f(x) = " + qbf.evaluateQBF());
-		
-		
+	}
 
+	@Override
+	public int getSize() {
+		return this.size;
 	}
 
 }

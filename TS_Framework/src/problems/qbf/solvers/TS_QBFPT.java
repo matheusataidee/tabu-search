@@ -25,7 +25,7 @@ import utils.Utils;
 public class TS_QBFPT extends AbstractTS<Integer> {
 	
 	private final Integer fake = new Integer(-1);
-
+	
 	/**
 	 * Constructor for the TS_QBF class. An inverse QBF objective function is
 	 * passed as argument for the superclass constructor.
@@ -217,14 +217,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	 * 
 	 */
 	public static void main(String[] args) throws IOException {
-
-		List<ProibitedTuple> s = Utils.getProibitedTuples(20);
 		
-		for (ProibitedTuple p : s)
-		{
-			System.out.println(p.getX0() + " - " + p.getX1() + " - "+p.getX2());
-		}
-		/*
 		long startTime = System.currentTimeMillis();
 		TS_QBFPT tabusearch = new TS_QBFPT(20, 10000, "instances/qbf020");
 		Solution<Integer> bestSol = tabusearch.solve();
@@ -232,7 +225,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		System.out.println("Time = "+(double)totalTime/(double)1000+" seg");
-*/
+
 	}
 
 }
