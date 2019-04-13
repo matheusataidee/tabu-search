@@ -6,8 +6,8 @@ import java.util.List;
 public class Utils {
 	public static int BEST_IMPROVEMENT = 0;
 	public static int FIRST_IMPROVEMENT = 1;
-	public static int PADRAO_METHOD = 0;
-	public static int PROBABILISTIC_METHOD = 1;
+	public static int DEFAULT_METHOD = 0;
+	public static int INTENSIFICATION_METHOD = 1;
 	public static int OSCILATION_METHOD = 2;
 	
 	public static List<ProibitedTuple> getProibitedTuples(int size)
