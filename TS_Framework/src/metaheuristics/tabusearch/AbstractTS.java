@@ -2,15 +2,17 @@
  * 
  */
 package metaheuristics.tabusearch;
-
+import static utils.Utils.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import problems.Evaluator;
 import solutions.Solution;
 import utils.ProibitedTuple;
+import utils.Recency;
 import utils.Utils;
 
 /**
@@ -64,6 +66,10 @@ public abstract class AbstractTS<E> {
 	protected Integer iterations;
 	
 	protected Integer searchMethod;
+	
+	protected Integer method;
+	
+	protected List<Recency> listOfRecency = new LinkedList<>();
 	/**
 	 * the tabu tenure.
 	 */
@@ -137,6 +143,14 @@ public abstract class AbstractTS<E> {
 	 * @return An local optimum solution.
 	 */
 	public abstract void neighborhoodMove();
+	
+	private void createRecencyList()
+	{
+		for (E el : incumbentSol) 
+		{
+			listOfRecency.add(new Recency<E>(el));
+		}
+	}
 
 	/**
 	 * Constructor for the AbstractTS class.
@@ -148,10 +162,11 @@ public abstract class AbstractTS<E> {
 	 * @param iterations
 	 *            The number of iterations which the TS will be executed.
 	 */
-	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer searchMethod, Integer iterations) {
+	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations) {
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
+		this.method = method;
 		this.searchMethod = searchMethod;
 		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
 	}
@@ -237,6 +252,8 @@ public abstract class AbstractTS<E> {
 
 		}
 
+		if(this.method == INTENSIFICATION_METHOD) createRecencyList();
+		
 		return incumbentSol;
 	}
 

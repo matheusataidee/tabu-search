@@ -12,6 +12,7 @@ import problems.qbf.QBF_Inverse;
 import solutions.Solution;
 import utils.Neighbor;
 import utils.ProibitedTuple;
+import utils.Recency;
 import utils.Utils;
 
 
@@ -42,8 +43,8 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	 * @throws IOException
 	 *             necessary for I/O operations.
 	 */
-	public TS_QBFPT(Integer tenure, Integer iterations, Integer searchMethod, String filename) throws IOException {
-		super(new QBF_Inverse(filename), tenure, searchMethod, iterations);
+	public TS_QBFPT(Integer tenure, Integer iterations, Integer method, Integer searchMethod, String filename) throws IOException {
+		super(new QBF_Inverse(filename), tenure, method, searchMethod, iterations);
 	}
 
 	/* (non-Javadoc)
@@ -160,6 +161,21 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		return n;
 	}
 	
+	private Recency<Integer> findOnRecencyList(Integer val)
+	{
+		return this.listOfRecency.stream().filter(element -> val == element.getValue()).findAny().orElse(null);
+	}
+	
+	private void updateRecencyList()
+	{
+		for(Integer el : incumbentSol)
+		{
+			Recency<Integer> element = findOnRecencyList(el);
+			if(element == null)  listOfRecency.add(new Recency<Integer>(el));
+			else element.increment();
+		}
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -177,6 +193,14 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		TL.poll();
 		if (n.getBestCandOut() != null) {
 			incumbentSol.remove(n.getBestCandOut());
+			
+			//remove element from recency
+			if(this.method == INTENSIFICATION_METHOD)
+			{
+				Recency<Integer> element = findOnRecencyList(n.getBestCandOut());
+				if(null != element)  listOfRecency.remove(listOfRecency.indexOf(element));
+			}
+			
 			CL.add(n.getBestCandOut());
 			TL.add(n.getBestCandOut());
 		} else {
@@ -190,8 +214,10 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		} else {
 			TL.add(fake);
 		}
-		
+
 		repairSolution();
+		
+		if(this.method == INTENSIFICATION_METHOD) updateRecencyList();
 		
 		ObjFunction.evaluate(incumbentSol);
 	}
@@ -203,7 +229,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, FIRST_IMPROVEMENT, "instances/qbf020");
+		TS_QBFPT tabusearch = new TS_QBFPT(2, 10000, INTENSIFICATION_METHOD, BEST_IMPROVEMENT, "instances/qbf200");
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
