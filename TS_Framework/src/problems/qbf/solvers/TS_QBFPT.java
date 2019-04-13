@@ -234,7 +234,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, INTENSIFICATION_METHOD, FIRST_IMPROVEMENT, "instances/qbf040", 300, 1);
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, INTENSIFICATION_METHOD, FIRST_IMPROVEMENT, "instances/qbf020", 100, 4);
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();

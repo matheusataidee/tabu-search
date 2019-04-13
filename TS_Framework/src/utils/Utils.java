@@ -38,7 +38,7 @@ public class Utils {
 			}
 			temp_x2 = h - 1;
 			
-			myList.add(new ProibitedTuple(temp_x0 + 1, temp_x1 + 1, temp_x2 + 1));
+			myList.add(new ProibitedTuple(temp_x0, temp_x1, temp_x2));
 		}
 		
 		return myList;
