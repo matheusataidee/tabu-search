@@ -5,6 +5,7 @@ package metaheuristics.tabusearch;
 import static utils.Utils.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -13,6 +14,7 @@ import problems.Evaluator;
 import solutions.Solution;
 import utils.ProibitedTuple;
 import utils.Recency;
+import utils.RecencySorter;
 import utils.Utils;
 
 /**
@@ -68,6 +70,10 @@ public abstract class AbstractTS<E> {
 	protected Integer searchMethod;
 	
 	protected Integer method;
+	
+	protected Integer intensification_max_iterations;
+	
+	protected Integer how_many_recency_elements_to_take;
 	
 	protected List<Recency> listOfRecency = new LinkedList<>();
 	/**
@@ -171,6 +177,17 @@ public abstract class AbstractTS<E> {
 		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
 	}
 	
+	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations, Integer intensification_max_iterations, Integer how_many_recency_elements_to_take) {
+		this.ObjFunction = objFunction;
+		this.tenure = tenure;
+		this.iterations = iterations;
+		this.method = method;
+		this.searchMethod = searchMethod;
+		this.intensification_max_iterations = intensification_max_iterations;
+		this.how_many_recency_elements_to_take = how_many_recency_elements_to_take;
+		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
+	}
+	
 	private Integer int2ProibitedTupleElement(int i, ProibitedTuple p)
 	{
 		switch(i)
@@ -257,6 +274,29 @@ public abstract class AbstractTS<E> {
 		return incumbentSol;
 	}
 
+	private void intensificateBestSolution()
+	{
+		//assume the incument solution to the best solution
+		incumbentSol = new Solution<E>(bestSol);
+		
+		//sort recency list
+		Collections.sort(this.listOfRecency, new RecencySorter());
+		
+		//clear TL
+		TL = makeTL();
+		
+		//create tabu of most recent elements
+		int qtd = 0;
+		for(Recency<E> el : listOfRecency)
+		{
+			if(++qtd >= how_many_recency_elements_to_take) break;
+			TL.add(el.getValue());
+		}
+		
+		//clear recency list
+		listOfRecency = new LinkedList<>();		
+	}
+	
 	/**
 	 * The TS mainframe. It consists of a constructive heuristic followed by
 	 * a loop, in which each iteration a neighborhood move is performed on
@@ -269,12 +309,24 @@ public abstract class AbstractTS<E> {
 		bestSol = createEmptySol();
 		constructiveHeuristic();
 		TL = makeTL();
+		
+		int howManyIterationsWithoutImprovement = 0;
+		
 		for (int i = 0; i < iterations; i++) {
 			neighborhoodMove();
+			
+			howManyIterationsWithoutImprovement++;
 			if (bestSol.cost > incumbentSol.cost) {
+				howManyIterationsWithoutImprovement = 0;
 				bestSol = new Solution<E>(incumbentSol);
 				if (verbose)
 					System.out.println("(Iter. " + i + ") BestSol = " + bestSol);
+			}
+
+			if(this.method == INTENSIFICATION_METHOD && howManyIterationsWithoutImprovement >= intensification_max_iterations)
+			{
+				intensificateBestSolution();
+				howManyIterationsWithoutImprovement = 0;
 			}
 		}
 

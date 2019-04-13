@@ -46,7 +46,12 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public TS_QBFPT(Integer tenure, Integer iterations, Integer method, Integer searchMethod, String filename) throws IOException {
 		super(new QBF_Inverse(filename), tenure, method, searchMethod, iterations);
 	}
-
+	
+	//Intensification constructor
+	public TS_QBFPT(Integer tenure, Integer iterations, Integer method, Integer searchMethod, String filename, Integer intensification_max_iterations, Integer how_many_recency_elements_to_take) throws IOException {
+		super(new QBF_Inverse(filename), tenure, method, searchMethod, iterations, intensification_max_iterations, how_many_recency_elements_to_take);
+	}
+	
 	/* (non-Javadoc)
 	 * @see metaheuristics.tabusearch.AbstractTS#makeCL()
 	 */
@@ -168,10 +173,10 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	
 	private void updateRecencyList()
 	{
-		for(Integer el : incumbentSol)
+		for(Integer val : incumbentSol)
 		{
-			Recency<Integer> element = findOnRecencyList(el);
-			if(element == null)  listOfRecency.add(new Recency<Integer>(el));
+			Recency<Integer> element = findOnRecencyList(val);
+			if(element == null)  listOfRecency.add(new Recency<Integer>(val));
 			else element.increment();
 		}
 	}
@@ -229,7 +234,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(2, 10000, INTENSIFICATION_METHOD, BEST_IMPROVEMENT, "instances/qbf200");
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, INTENSIFICATION_METHOD, FIRST_IMPROVEMENT, "instances/qbf040", 300, 1);
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();

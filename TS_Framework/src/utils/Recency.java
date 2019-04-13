@@ -22,5 +22,5 @@ public class Recency<E> {
 	public void increment()
 	{
 		this.qtd++;
-	}
+	} 
 }
