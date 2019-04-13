@@ -201,6 +201,11 @@ public abstract class AbstractTS<E> {
 		}
 	}
 
+	protected Recency<E> findOnRecencyList(Integer val)
+	{
+		return this.listOfRecency.stream().filter(element -> val == element.getValue()).findAny().orElse(null);
+	}
+	
 	protected void repairSolution()
 	{
 		for(ProibitedTuple proibitedTuple : listOfProibitedTuples)
@@ -210,6 +215,12 @@ public abstract class AbstractTS<E> {
                 Integer candToRemove = int2ProibitedTupleElement(gerador.nextInt(3), proibitedTuple);
                 incumbentSol.remove(incumbentSol.indexOf(candToRemove));
                                     
+                if(this.method == INTENSIFICATION_METHOD)
+    			{
+    				Recency<E> element = findOnRecencyList(candToRemove);
+    				if(null != element)  listOfRecency.remove(listOfRecency.indexOf(element));
+    			}
+                
                 ObjFunction.evaluate(incumbentSol);
 			}
 		}
@@ -288,11 +299,10 @@ public abstract class AbstractTS<E> {
 		//create tabu of most recent elements
 		int qtd = 0;
 		for(Recency<E> el : listOfRecency)
-		{
-			if(++qtd >= how_many_recency_elements_to_take) break;
+		{			
+			if(qtd++ >= how_many_recency_elements_to_take) break;
 			TL.add(el.getValue());
 		}
-		
 		//clear recency list
 		listOfRecency = new LinkedList<>();		
 	}

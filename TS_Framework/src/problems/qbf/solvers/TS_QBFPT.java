@@ -166,11 +166,6 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		return n;
 	}
 	
-	private Recency<Integer> findOnRecencyList(Integer val)
-	{
-		return this.listOfRecency.stream().filter(element -> val == element.getValue()).findAny().orElse(null);
-	}
-	
 	private void updateRecencyList()
 	{
 		for(Integer val : incumbentSol)
