@@ -113,7 +113,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		return sol;
 	}
 	
-	Neighbor firstSearch()
+	private Neighbor localSearch()
 	{
 		Neighbor n = new Neighbor();
 		for (Integer candIn : CL) {
@@ -124,7 +124,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 					n.setBestCandIn(candIn);
 					n.setBestCandOut(null);
 					
-					return n;
+					if(this.searchMethod == FIRST_IMPROVEMENT) return n;
 				}
 			}
 		}
@@ -137,7 +137,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 					n.setBestCandIn(null);
 					n.setBestCandOut(candOut);
 					
-					return n;
+					if(this.searchMethod == FIRST_IMPROVEMENT) return n;
 				}
 			}
 		}
@@ -151,48 +151,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 						n.setBestCandIn(candIn);
 						n.setBestCandOut(candOut);
 						
-						return n;
-					}
-				}
-			}
-		}
-		
-		return n;
-	}
-
-	private Neighbor bestSearch()
-	{
-		Neighbor n = new Neighbor();
-		for (Integer candIn : CL) {
-			Double deltaCost = ObjFunction.evaluateInsertionCost(candIn, incumbentSol);
-			if (!TL.contains(candIn) || incumbentSol.cost+deltaCost < bestSol.cost) {
-				if (deltaCost < n.getMinDeltaCost()) {
-					n.setMinDeltaCost(deltaCost);
-					n.setBestCandIn(candIn);
-					n.setBestCandOut(null);
-				}
-			}
-		}
-		// Evaluate removals
-		for (Integer candOut : incumbentSol) {
-			Double deltaCost = ObjFunction.evaluateRemovalCost(candOut, incumbentSol);
-			if (!TL.contains(candOut) || incumbentSol.cost+deltaCost < bestSol.cost) {
-				if (deltaCost < n.getMinDeltaCost()) {
-					n.setMinDeltaCost(deltaCost);
-					n.setBestCandIn(null);
-					n.setBestCandOut(candOut);
-				}
-			}
-		}
-		// Evaluate exchanges
-		for (Integer candIn : CL) {
-			for (Integer candOut : incumbentSol) {
-				Double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, incumbentSol);
-				if ((!TL.contains(candIn) && !TL.contains(candOut)) || incumbentSol.cost+deltaCost < bestSol.cost) {
-					if (deltaCost < n.getMinDeltaCost()) {
-						n.setMinDeltaCost(deltaCost);
-						n.setBestCandIn(candIn);
-						n.setBestCandOut(candOut);
+						if(this.searchMethod == FIRST_IMPROVEMENT) return n;
 					}
 				}
 			}
@@ -212,7 +171,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	{
 		repairSolution();
 		
-		Neighbor n = (this.searchMethod == FIRST_IMPROVEMENT) ? firstSearch():bestSearch();
+		Neighbor n = localSearch();
 		
 		// Implement the best non-tabu move
 		TL.poll();
@@ -244,7 +203,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, BEST_IMPROVEMENT, "instances/qbf020");
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, FIRST_IMPROVEMENT, "instances/qbf020");
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
