@@ -3,10 +3,14 @@ package problems.qbf.solvers;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import metaheuristics.tabusearch.AbstractTS;
 import problems.qbf.QBF_Inverse;
 import solutions.Solution;
+import utils.ProibitedTuple;
+import utils.Utils;
 
 
 
@@ -18,7 +22,7 @@ import solutions.Solution;
  * 
  * @author ccavellucci, fusberti
  */
-public class TS_QBF extends AbstractTS<Integer> {
+public class TS_QBFPT extends AbstractTS<Integer> {
 	
 	private final Integer fake = new Integer(-1);
 
@@ -36,7 +40,7 @@ public class TS_QBF extends AbstractTS<Integer> {
 	 * @throws IOException
 	 *             necessary for I/O operations.
 	 */
-	public TS_QBF(Integer tenure, Integer iterations, String filename) throws IOException {
+	public TS_QBFPT(Integer tenure, Integer iterations, String filename) throws IOException {
 		super(new QBF_Inverse(filename), tenure, iterations);
 	}
 
@@ -106,6 +110,38 @@ public class TS_QBF extends AbstractTS<Integer> {
 		sol.cost = 0.0;
 		return sol;
 	}
+	
+	void repairSolution()
+	{
+		/*int[][] tupla = ObjFunction.getTupla(); // .update();
+        
+        for(int i =0; i<ObjFunction.getDomainSize();i++)
+        {
+            int a = tupla[i][0];
+            int b = tupla[i][1];
+            int c = tupla[i][2];
+            
+            if(incumbentSol.indexOf(a) != -1 && incumbentSol.indexOf(b) != -1 && incumbentSol.indexOf(c) != -1 ){
+                Random gerador = new Random(); 
+                int u = gerador.nextInt(3);
+                if(u == 0){
+                    incumbentSol.remove(incumbentSol.indexOf(b));
+                    //CL.add(b);
+                }
+                else if(u == 1){
+                    incumbentSol.remove(incumbentSol.indexOf(a));
+                    //CL.add(a);
+                }
+                else{
+                    incumbentSol.remove(incumbentSol.indexOf(c));
+                    //CL.add(c);
+                }
+                    
+                ObjFunction.evaluate(incumbentSol);
+            }
+           
+        }*/
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -114,13 +150,13 @@ public class TS_QBF extends AbstractTS<Integer> {
 	 * composed by the neighborhood moves Insertion, Removal and 2-Exchange.
 	 */
 	@Override
-	public Solution<Integer> neighborhoodMove() {
+	public void neighborhoodMove() {
 
 		Double minDeltaCost;
 		Integer bestCandIn = null, bestCandOut = null;
 
 		minDeltaCost = Double.POSITIVE_INFINITY;
-		updateCL();
+		repairSolution();
 		// Evaluate insertions
 		for (Integer candIn : CL) {
 			Double deltaCost = ObjFunction.evaluateInsertionCost(candIn, incumbentSol);
@@ -174,8 +210,6 @@ public class TS_QBF extends AbstractTS<Integer> {
 			TL.add(fake);
 		}
 		ObjFunction.evaluate(incumbentSol);
-		
-		return null;
 	}
 
 	/**
@@ -184,14 +218,21 @@ public class TS_QBF extends AbstractTS<Integer> {
 	 */
 	public static void main(String[] args) throws IOException {
 
+		List<ProibitedTuple> s = Utils.getProibitedTuples(20);
+		
+		for (ProibitedTuple p : s)
+		{
+			System.out.println(p.getX0() + " - " + p.getX1() + " - "+p.getX2());
+		}
+		/*
 		long startTime = System.currentTimeMillis();
-		TS_QBF tabusearch = new TS_QBF(20, 10000, "instances/qbf100");
+		TS_QBFPT tabusearch = new TS_QBFPT(20, 10000, "instances/qbf020");
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		System.out.println("Time = "+(double)totalTime/(double)1000+" seg");
-
+*/
 	}
 
 }
