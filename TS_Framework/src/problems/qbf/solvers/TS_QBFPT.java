@@ -163,8 +163,8 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 			for (Integer candOut : incumbentSol) {
 				Double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, incumbentSol);
 				if ((!TL.contains(candIn) && !TL.contains(candOut)) || incumbentSol.cost+deltaCost < bestSol.cost) {
-					if (deltaCost - violationPenalties.get(candOut) < n.getMinDeltaCost()) {
-						n.setMinDeltaCost(deltaCost - violationPenalties.get(candOut));
+					if (deltaCost < n.getMinDeltaCost()) {
+						n.setMinDeltaCost(deltaCost);
 						n.setBestCandIn(candIn);
 						n.setBestCandOut(candOut);
 						
@@ -244,7 +244,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, OSCILATION_METHOD, BEST_IMPROVEMENT, "instances/qbf040");
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 1000, OSCILATION_METHOD, BEST_IMPROVEMENT, "instances/qbf400");
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
