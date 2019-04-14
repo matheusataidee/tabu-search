@@ -96,6 +96,11 @@ public abstract class AbstractTS<E> {
 	 */
 	protected ArrayDeque<E> TL;
 	
+	/**
+	 * the list of penalties for each element when in a infeasible solution.
+	 */
+	protected ArrayList<E> violationPenalties;
+	
 	protected List<ProibitedTuple> listOfProibitedTuples;
 
 	/**
@@ -130,6 +135,13 @@ public abstract class AbstractTS<E> {
 	 */
 	public abstract void updateCL();
 
+	/**
+	 * Creates the List of penalties for violating restrictions
+	 * 
+	 * @return The Violation Penalties List.
+	 */
+	public abstract ArrayList<E> makeViolationPenaltiesList();
+	
 	/**
 	 * Creates a new solution which is empty, i.e., does not contain any
 	 * candidate solution element.
@@ -319,6 +331,7 @@ public abstract class AbstractTS<E> {
 		bestSol = createEmptySol();
 		constructiveHeuristic();
 		TL = makeTL();
+		violationPenalties = makeViolationPenaltiesList();
 		
 		int howManyIterationsWithoutImprovement = 0;
 		

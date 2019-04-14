@@ -104,6 +104,17 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		// do nothing
 
 	}
+	
+	@Override
+	public ArrayList<Integer> makeViolationPenaltiesList() {
+		ArrayList<Integer> _violationPenalties = new ArrayList<Integer>();
+		for (int i = 0; i < ObjFunction.getDomainSize(); i++) {
+			Integer penalty = new Integer(0);
+			_violationPenalties.add(penalty);
+		}
+
+		return _violationPenalties;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -229,7 +240,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, INTENSIFICATION_METHOD, FIRST_IMPROVEMENT, "instances/qbf020", 100, 4);
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, DEFAULT_METHOD, BEST_IMPROVEMENT, "instances/qbf020", 100, 4);
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
