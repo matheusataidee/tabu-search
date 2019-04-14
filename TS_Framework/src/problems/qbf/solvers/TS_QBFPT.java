@@ -106,10 +106,10 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	}
 	
 	@Override
-	public ArrayList<Integer> makeViolationPenaltiesList() {
-		ArrayList<Integer> _violationPenalties = new ArrayList<Integer>();
+	public ArrayList<Double> makeViolationPenaltiesList() {
+		ArrayList<Double> _violationPenalties = new ArrayList<Double>();
 		for (int i = 0; i < ObjFunction.getDomainSize(); i++) {
-			Integer penalty = new Integer(0);
+			Double penalty = new Double(0.0);
 			_violationPenalties.add(penalty);
 		}
 
@@ -149,8 +149,8 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		for (Integer candOut : incumbentSol) {
 			Double deltaCost = ObjFunction.evaluateRemovalCost(candOut, incumbentSol);
 			if (!TL.contains(candOut) || incumbentSol.cost+deltaCost < bestSol.cost) {
-				if (deltaCost < n.getMinDeltaCost()) {
-					n.setMinDeltaCost(deltaCost);
+				if (deltaCost - violationPenalties.get(candOut) < n.getMinDeltaCost()) {
+					n.setMinDeltaCost(deltaCost - violationPenalties.get(candOut));
 					n.setBestCandIn(null);
 					n.setBestCandOut(candOut);
 					
@@ -163,8 +163,8 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 			for (Integer candOut : incumbentSol) {
 				Double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, incumbentSol);
 				if ((!TL.contains(candIn) && !TL.contains(candOut)) || incumbentSol.cost+deltaCost < bestSol.cost) {
-					if (deltaCost < n.getMinDeltaCost()) {
-						n.setMinDeltaCost(deltaCost);
+					if (deltaCost - violationPenalties.get(candOut) < n.getMinDeltaCost()) {
+						n.setMinDeltaCost(deltaCost - violationPenalties.get(candOut));
 						n.setBestCandIn(candIn);
 						n.setBestCandOut(candOut);
 						
@@ -196,7 +196,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	@Override
 	public void neighborhoodMove() 
 	{
-		repairSolution();
+		if (this.method != OSCILATION_METHOD) repairSolution();
 		
 		Neighbor n = localSearch();
 		
@@ -226,7 +226,11 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 			TL.add(fake);
 		}
 
-		repairSolution();
+		if (this.method == OSCILATION_METHOD) {
+			updateViolationPenalties();
+		} else {
+			repairSolution();	
+		}
 		
 		if(this.method == INTENSIFICATION_METHOD) updateRecencyList();
 		
@@ -240,7 +244,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	public static void main(String[] args) throws IOException {
 		
 		long startTime = System.currentTimeMillis();
-		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, DEFAULT_METHOD, BEST_IMPROVEMENT, "instances/qbf020", 100, 4);
+		TS_QBFPT tabusearch = new TS_QBFPT(50, 10000, OSCILATION_METHOD, BEST_IMPROVEMENT, "instances/qbf040");
 		Solution<Integer> bestSol = tabusearch.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
