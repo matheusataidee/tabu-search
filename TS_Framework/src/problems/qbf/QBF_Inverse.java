@@ -10,7 +10,7 @@ import java.io.IOException;
  * @author ccavellucci, fusberti
  */
 public class QBF_Inverse extends QBF {
-
+	
 	/**
 	 * Constructor for the QBF_Inverse class.
 	 * 

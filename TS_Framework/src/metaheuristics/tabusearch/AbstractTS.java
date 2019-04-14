@@ -2,13 +2,21 @@
  * 
  */
 package metaheuristics.tabusearch;
-
+import static utils.Utils.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import problems.Evaluator;
 import solutions.Solution;
+import utils.ProibitedTuple;
+import utils.Recency;
+import utils.RecencySorter;
+import utils.Utils;
 
 /**
  * Abstract class for metaheuristic Tabu Search. It consider a minimization problem.
@@ -60,6 +68,15 @@ public abstract class AbstractTS<E> {
 	 */
 	protected Integer iterations;
 	
+	protected Integer searchMethod;
+	
+	protected Integer method;
+	
+	protected Integer intensification_max_iterations;
+	
+	protected Integer how_many_recency_elements_to_take;
+	
+	protected List<Recency> listOfRecency = new LinkedList<>();
 	/**
 	 * the tabu tenure.
 	 */
@@ -79,6 +96,8 @@ public abstract class AbstractTS<E> {
 	 * the Tabu List of elements to enter the solution.
 	 */
 	protected ArrayDeque<E> TL;
+	
+	protected List<ProibitedTuple> listOfProibitedTuples;
 
 	/**
 	 * Creates the Candidate List, which is an ArrayList of candidate elements
@@ -130,8 +149,18 @@ public abstract class AbstractTS<E> {
 	 * 
 	 * @return An local optimum solution.
 	 */
-	public abstract Solution<E> neighborhoodMove();
+	public abstract void neighborhoodMove();
+	
+	private void createRecencyList()
+	{
+		for (E el : incumbentSol) 
+		{
+			listOfRecency.add(new Recency<E>(el));
+		}
+	}
 
+	protected Logger logger;
+	
 	/**
 	 * Constructor for the AbstractTS class.
 	 * 
@@ -142,12 +171,66 @@ public abstract class AbstractTS<E> {
 	 * @param iterations
 	 *            The number of iterations which the TS will be executed.
 	 */
-	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer iterations) {
+	public AbstractTS(Logger logger, Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations) {
+		this.logger = logger;
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
+		this.method = method;
+		this.searchMethod = searchMethod;
+		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
+	}
+	
+	public AbstractTS(Logger logger, Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations, Integer intensification_max_iterations, Integer how_many_recency_elements_to_take) {
+		this.logger = logger;
+		this.ObjFunction = objFunction;
+		this.tenure = tenure;
+		this.iterations = iterations;
+		this.method = method;
+		this.searchMethod = searchMethod;
+		this.intensification_max_iterations = intensification_max_iterations;
+		this.how_many_recency_elements_to_take = how_many_recency_elements_to_take;
+		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
+	}
+	
+	private Integer int2ProibitedTupleElement(int i, ProibitedTuple p)
+	{
+		switch(i)
+		{
+		case 0:
+			return p.getX0();
+		case 1:
+			return p.getX1();
+		default:
+			return p.getX2();
+		}
 	}
 
+	protected Recency<E> findOnRecencyList(Integer val)
+	{
+		return this.listOfRecency.stream().filter(element -> val == element.getValue()).findAny().orElse(null);
+	}
+	
+	protected void repairSolution()
+	{
+		for(ProibitedTuple proibitedTuple : listOfProibitedTuples)
+		{
+			if(incumbentSol.indexOf(proibitedTuple.getX0()) != -1 && incumbentSol.indexOf(proibitedTuple.getX1()) != -1 && incumbentSol.indexOf(proibitedTuple.getX2()) != -1 ){
+                Random gerador = new Random(); 
+                Integer candToRemove = int2ProibitedTupleElement(gerador.nextInt(3), proibitedTuple);
+                incumbentSol.remove(incumbentSol.indexOf(candToRemove));
+                                    
+                if(this.method == INTENSIFICATION_METHOD)
+    			{
+    				Recency<E> element = findOnRecencyList(candToRemove);
+    				if(null != element)  listOfRecency.remove(listOfRecency.indexOf(element));
+    			}
+                
+                ObjFunction.evaluate(incumbentSol);
+			}
+		}
+	}
+	
 	/**
 	 * The TS constructive heuristic, which is responsible for building a
 	 * feasible solution by selecting in a greedy fashion, candidate
@@ -167,7 +250,7 @@ public abstract class AbstractTS<E> {
 
 			Double maxCost = Double.NEGATIVE_INFINITY, minCost = Double.POSITIVE_INFINITY;
 			incumbentCost = incumbentSol.cost;
-			updateCL();
+			repairSolution();
 
 			/*
 			 * Explore all candidate elements to enter the solution, saving the
@@ -202,9 +285,33 @@ public abstract class AbstractTS<E> {
 
 		}
 
+		if(this.method == INTENSIFICATION_METHOD) createRecencyList();
+		
 		return incumbentSol;
 	}
 
+	private void intensificateBestSolution()
+	{
+		//assume the incument solution to the best solution
+		incumbentSol = new Solution<E>(bestSol);
+		
+		//sort recency list
+		Collections.sort(this.listOfRecency, new RecencySorter());
+		
+		//clear TL
+		TL = makeTL();
+		
+		//create tabu of most recent elements
+		int qtd = 0;
+		for(Recency<E> el : listOfRecency)
+		{			
+			if(qtd++ >= how_many_recency_elements_to_take) break;
+			TL.add(el.getValue());
+		}
+		//clear recency list
+		listOfRecency = new LinkedList<>();		
+	}
+	
 	/**
 	 * The TS mainframe. It consists of a constructive heuristic followed by
 	 * a loop, in which each iteration a neighborhood move is performed on
@@ -217,12 +324,24 @@ public abstract class AbstractTS<E> {
 		bestSol = createEmptySol();
 		constructiveHeuristic();
 		TL = makeTL();
+		
+		int howManyIterationsWithoutImprovement = 0;
+		
 		for (int i = 0; i < iterations; i++) {
 			neighborhoodMove();
+			
+			howManyIterationsWithoutImprovement++;
 			if (bestSol.cost > incumbentSol.cost) {
+				howManyIterationsWithoutImprovement = 0;
 				bestSol = new Solution<E>(incumbentSol);
 				if (verbose)
-					System.out.println("(Iter. " + i + ") BestSol = " + bestSol);
+					logger.info("(Iter. " + i + ") BestSol = " + bestSol);
+			}
+
+			if(this.method == INTENSIFICATION_METHOD && howManyIterationsWithoutImprovement >= intensification_max_iterations)
+			{
+				intensificateBestSolution();
+				howManyIterationsWithoutImprovement = 0;
 			}
 		}
 
