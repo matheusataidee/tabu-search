@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import problems.Evaluator;
 import solutions.Solution;
@@ -158,6 +159,8 @@ public abstract class AbstractTS<E> {
 		}
 	}
 
+	protected Logger logger;
+	
 	/**
 	 * Constructor for the AbstractTS class.
 	 * 
@@ -168,7 +171,8 @@ public abstract class AbstractTS<E> {
 	 * @param iterations
 	 *            The number of iterations which the TS will be executed.
 	 */
-	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations) {
+	public AbstractTS(Logger logger, Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations) {
+		this.logger = logger;
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
@@ -177,7 +181,8 @@ public abstract class AbstractTS<E> {
 		this.listOfProibitedTuples =  Utils.getProibitedTuples(ObjFunction.getSize());
 	}
 	
-	public AbstractTS(Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations, Integer intensification_max_iterations, Integer how_many_recency_elements_to_take) {
+	public AbstractTS(Logger logger, Evaluator<E> objFunction, Integer tenure, Integer method, Integer searchMethod, Integer iterations, Integer intensification_max_iterations, Integer how_many_recency_elements_to_take) {
+		this.logger = logger;
 		this.ObjFunction = objFunction;
 		this.tenure = tenure;
 		this.iterations = iterations;
@@ -330,7 +335,7 @@ public abstract class AbstractTS<E> {
 				howManyIterationsWithoutImprovement = 0;
 				bestSol = new Solution<E>(incumbentSol);
 				if (verbose)
-					System.out.println("(Iter. " + i + ") BestSol = " + bestSol);
+					logger.info("(Iter. " + i + ") BestSol = " + bestSol);
 			}
 
 			if(this.method == INTENSIFICATION_METHOD && howManyIterationsWithoutImprovement >= intensification_max_iterations)
