@@ -250,9 +250,9 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	 */
 	public static void main(String[] args) throws IOException {
 		
-		Logger logger = setUpLogger("results\\INTENSIFICATION_METHOD.txt");
+		Logger logger = setUpLogger("results\\INTENSIFICATION_METHOD_final.txt");
 		
-		Integer tenures[] = {5, 18};
+		Integer tenures[] = {2, 18};
 		Integer localSearchMethods[] = {FIRST_IMPROVEMENT, BEST_IMPROVEMENT};
 		
 		String instances[] = {"instances/qbf020", 
@@ -262,22 +262,24 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 								"instances/qbf100",
 								"instances/qbf200",
 								"instances/qbf400"};
-		Integer intensification_qtds_run = 1000;
-		Integer intensification_qtds_to_tabu = 12;
+		Integer intensification_qtds_run[] = {500};
+		Integer intensification_qtds_to_tabu[] = {18};
 		
 		for (String instance : instances)
 		for(Integer localSearchMethod : localSearchMethods)
 		for(Integer tenure:tenures)
+		for(Integer intensification_qtd_run : intensification_qtds_run)
+		for(Integer intensification_qtd_to_tabu : intensification_qtds_to_tabu)
 		{
 			logger.info("----------------------------------------------------------------");
 			logger.info("Going to start a new parameter configuration");
 			logger.info("Execution for "+instance);
 			logger.info("Local search Method = "+(localSearchMethod==FIRST_IMPROVEMENT?"FIRST_IMPROVEMENT":"BEST_IMPROVEMENT"));
 			logger.info("Tenure = "+tenure);
-			logger.info("Intensification run quantity = "+intensification_qtds_run);
-			logger.info("Intensification to tabu qtd = "+intensification_qtds_to_tabu);
+			logger.info("Intensification run quantity = "+intensification_qtd_run);
+			logger.info("Intensification to tabu qtd = "+intensification_qtd_to_tabu);
 			long startTime = System.currentTimeMillis();
-			TS_QBFPT tabusearch = new TS_QBFPT(logger, tenure, 10000, INTENSIFICATION_METHOD, localSearchMethod, instance, intensification_qtds_run, intensification_qtds_to_tabu);
+			TS_QBFPT tabusearch = new TS_QBFPT(logger, tenure, 100000, INTENSIFICATION_METHOD, localSearchMethod, instance, intensification_qtd_run, intensification_qtd_to_tabu);
 			Solution<Integer> bestSol = tabusearch.solve();
 			logger.info("maxVal = " + bestSol);
 			long endTime   = System.currentTimeMillis();
