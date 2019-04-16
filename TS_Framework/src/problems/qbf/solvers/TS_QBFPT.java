@@ -275,7 +275,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 			//logger.info("Intensification run quantity = "+intensification_qtd_run);
 			//logger.info("Intensification to tabu qtd = "+intensification_qtd_to_tabu);
 			long startTime = System.currentTimeMillis();
-			TS_QBFPT tabusearch = new TS_QBFPT(logger, tenure, 300, DEFAULT_METHOD, localSearchMethod, instance);
+			TS_QBFPT tabusearch = new TS_QBFPT(logger, tenure, 100000, DEFAULT_METHOD, localSearchMethod, instance);
 			Solution<Integer> bestSol = tabusearch.solve();
 			logger.info("maxVal = " + bestSol);
 			long endTime   = System.currentTimeMillis();
