@@ -76,6 +76,10 @@ public abstract class AbstractTS<E> {
 	
 	protected Integer how_many_recency_elements_to_take;
 	
+	protected Boolean is_feasible;
+	
+	protected Integer number_of_iterations_infeasible;
+	
 	protected List<Recency> listOfRecency = new LinkedList<>();
 	/**
 	 * the tabu tenure.
@@ -97,7 +101,14 @@ public abstract class AbstractTS<E> {
 	 */
 	protected ArrayDeque<E> TL;
 	
+	/**
+	 * the list of penalties for each element when in a infeasible solution.
+	 */
+	protected ArrayList<Double> violationPenalties;
+	
 	protected List<ProibitedTuple> listOfProibitedTuples;
+	
+	protected Logger logger;
 
 	/**
 	 * Creates the Candidate List, which is an ArrayList of candidate elements
@@ -131,6 +142,13 @@ public abstract class AbstractTS<E> {
 	 */
 	public abstract void updateCL();
 
+	/**
+	 * Creates the List of penalties for violating restrictions
+	 * 
+	 * @return The Violation Penalties List.
+	 */
+	public abstract ArrayList<Double> makeViolationPenaltiesList();
+	
 	/**
 	 * Creates a new solution which is empty, i.e., does not contain any
 	 * candidate solution element.
@@ -248,6 +266,26 @@ public abstract class AbstractTS<E> {
 		}
 	}
 	
+	protected void updateViolationPenalties() {
+		is_feasible = true;
+		ArrayList<Double> updatedPenalties = makeViolationPenaltiesList(); 
+		for(ProibitedTuple proibitedTuple : listOfProibitedTuples) {
+			if(incumbentSol.indexOf(proibitedTuple.getX0()) != -1 && incumbentSol.indexOf(proibitedTuple.getX1()) != -1 && incumbentSol.indexOf(proibitedTuple.getX2()) != -1 ) {
+				if (is_feasible) {
+					is_feasible = false;
+					number_of_iterations_infeasible++;
+				}
+				updatedPenalties.set(proibitedTuple.getX0(), violationPenalties.get(proibitedTuple.getX0()) + number_of_iterations_infeasible);
+				updatedPenalties.set(proibitedTuple.getX1(), violationPenalties.get(proibitedTuple.getX1()) + number_of_iterations_infeasible);
+				updatedPenalties.set(proibitedTuple.getX2(), violationPenalties.get(proibitedTuple.getX2()) + number_of_iterations_infeasible);
+			}
+		}
+		violationPenalties = updatedPenalties;
+		if (is_feasible) {
+			number_of_iterations_infeasible = 0;
+		}
+	}
+	
 	/**
 	 * The TS constructive heuristic, which is responsible for building a
 	 * feasible solution by selecting in a greedy fashion, candidate
@@ -341,14 +379,17 @@ public abstract class AbstractTS<E> {
 		bestSol = createEmptySol();
 		constructiveHeuristic();
 		TL = makeTL();
+		violationPenalties = makeViolationPenaltiesList();
 		
+		is_feasible = true;
+		number_of_iterations_infeasible = 0;		
 		int howManyIterationsWithoutImprovement = 0;
 		
 		for (int i = 0; i < iterations; i++) {
 			neighborhoodMove();
 			
 			howManyIterationsWithoutImprovement++;
-			if (bestSol.cost > incumbentSol.cost) {
+			if (is_feasible && bestSol.cost > incumbentSol.cost) {
 				howManyIterationsWithoutImprovement = 0;
 				bestSol = new Solution<E>(incumbentSol);
 				if (verbose)

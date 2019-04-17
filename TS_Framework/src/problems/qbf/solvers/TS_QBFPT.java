@@ -107,6 +107,17 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		// do nothing
 
 	}
+	
+	@Override
+	public ArrayList<Double> makeViolationPenaltiesList() {
+		ArrayList<Double> _violationPenalties = new ArrayList<Double>();
+		for (int i = 0; i < ObjFunction.getDomainSize(); i++) {
+			Double penalty = new Double(0.0);
+			_violationPenalties.add(penalty);
+		}
+
+		return _violationPenalties;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -141,8 +152,8 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		for (Integer candOut : incumbentSol) {
 			Double deltaCost = ObjFunction.evaluateRemovalCost(candOut, incumbentSol);
 			if (!TL.contains(candOut) || incumbentSol.cost+deltaCost < bestSol.cost) {
-				if (deltaCost < n.getMinDeltaCost()) {
-					n.setMinDeltaCost(deltaCost);
+				if (deltaCost - violationPenalties.get(candOut) < n.getMinDeltaCost()) {
+					n.setMinDeltaCost(deltaCost - violationPenalties.get(candOut));
 					n.setBestCandIn(null);
 					n.setBestCandOut(candOut);
 					
@@ -188,7 +199,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	@Override
 	public void neighborhoodMove() 
 	{
-		repairSolution();
+		if (this.method != OSCILATION_METHOD) repairSolution();
 		
 		Neighbor n = localSearch();
 		
@@ -218,7 +229,11 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 			TL.add(fake);
 		}
 
-		repairSolution();
+		if (this.method == OSCILATION_METHOD) {
+			updateViolationPenalties();
+		} else {
+			repairSolution();	
+		}
 		
 		if(this.method == INTENSIFICATION_METHOD) updateRecencyList();
 		
@@ -244,6 +259,25 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		return logger;
 	}
 
+	public static Logger setUpLogger(String addr)
+	{
+		Logger logger = Logger.getLogger("MyLog");
+		try {  
+			FileHandler fh = new FileHandler(addr);  
+		    logger.addHandler(fh);
+		    SimpleFormatter formatter = new SimpleFormatter();  
+		    fh.setFormatter(formatter);   
+
+		    logger.setUseParentHandlers(false);
+		    } catch (SecurityException e) {  
+		        e.printStackTrace();  
+		    } catch (IOException e) {  
+		        e.printStackTrace();  
+		    }  
+
+		return logger;
+	}
+	
 	/**
 	 * A main method used for testing the TS metaheuristic.
 	 * 
