@@ -108,7 +108,6 @@ public abstract class AbstractTS<E> {
 	
 	protected List<ProibitedTuple> listOfProibitedTuples;
 	
-	protected Logger logger;
 
 	/**
 	 * Creates the Candidate List, which is an ArrayList of candidate elements

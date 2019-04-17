@@ -240,24 +240,6 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		ObjFunction.evaluate(incumbentSol);
 	}
 	
-	public static Logger setUpLogger(String addr)
-	{
-		Logger logger = Logger.getLogger("MyLog");
-		try {  
-			FileHandler fh = new FileHandler(addr);  
-		    logger.addHandler(fh);
-		    SimpleFormatter formatter = new SimpleFormatter();  
-		    fh.setFormatter(formatter);   
-		    
-		    logger.setUseParentHandlers(false);
-		    } catch (SecurityException e) {  
-		        e.printStackTrace();  
-		    } catch (IOException e) {  
-		        e.printStackTrace();  
-		    }  
-		
-		return logger;
-	}
 
 	public static Logger setUpLogger(String addr)
 	{
