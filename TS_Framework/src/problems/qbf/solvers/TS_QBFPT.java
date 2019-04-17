@@ -138,7 +138,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		Neighbor n = new Neighbor();
 		for (Integer candIn : CL) {
 			Double deltaCost = ObjFunction.evaluateInsertionCost(candIn, incumbentSol);
-			if (!TL.contains(candIn)) {
+			if (!TL.contains(candIn) || incumbentSol.cost+deltaCost < bestSol.cost) {
 				if (deltaCost < n.getMinDeltaCost()) {
 					n.setMinDeltaCost(deltaCost);
 					n.setBestCandIn(candIn);
@@ -151,7 +151,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		// Evaluate removals
 		for (Integer candOut : incumbentSol) {
 			Double deltaCost = ObjFunction.evaluateRemovalCost(candOut, incumbentSol);
-			if (!TL.contains(candOut)) {
+			if (!TL.contains(candOut) || incumbentSol.cost+deltaCost < bestSol.cost) {
 				if (deltaCost - violationPenalties.get(candOut) < n.getMinDeltaCost()) {
 					n.setMinDeltaCost(deltaCost - violationPenalties.get(candOut));
 					n.setBestCandIn(null);
@@ -165,7 +165,7 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		for (Integer candIn : CL) {
 			for (Integer candOut : incumbentSol) {
 				Double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, incumbentSol);
-				if ((!TL.contains(candIn) && !TL.contains(candOut))) {
+				if ((!TL.contains(candIn) && !TL.contains(candOut)) || incumbentSol.cost+deltaCost < bestSol.cost) {
 					if (deltaCost < n.getMinDeltaCost()) {
 						n.setMinDeltaCost(deltaCost);
 						n.setBestCandIn(candIn);
@@ -239,6 +239,25 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 		
 		ObjFunction.evaluate(incumbentSol);
 	}
+	
+	public static Logger setUpLogger(String addr)
+	{
+		Logger logger = Logger.getLogger("MyLog");
+		try {  
+			FileHandler fh = new FileHandler(addr);  
+		    logger.addHandler(fh);
+		    SimpleFormatter formatter = new SimpleFormatter();  
+		    fh.setFormatter(formatter);   
+		    
+		    logger.setUseParentHandlers(false);
+		    } catch (SecurityException e) {  
+		        e.printStackTrace();  
+		    } catch (IOException e) {  
+		        e.printStackTrace();  
+		    }  
+		
+		return logger;
+	}
 
 	public static Logger setUpLogger(String addr)
 	{
@@ -265,27 +284,43 @@ public class TS_QBFPT extends AbstractTS<Integer> {
 	 */
 	public static void main(String[] args) throws IOException {
 		
-		Logger logger = setUpLogger("results\\OSCILATION_METHOD.txt");
-		String instances[] = {"instances/qbf020", 
-				"instances/qbf040",
-				"instances/qbf060",
-				"instances/qbf080",
-				"instances/qbf100",
-				"instances/qbf200",
-				"instances/qbf400"};
-		Integer iterations[] = {10000000, 1000000, 200000, 40000, 10000, 5000, 2500};
+		Logger logger = setUpLogger("results\\DEFAULT_METHOD_final.txt");
 		
+		Integer tenures[] = {2, 18};
+		Integer localSearchMethods[] = {FIRST_IMPROVEMENT, BEST_IMPROVEMENT};
 		
-		for (int i = 0; i < 7; i++) {
-			logger.info(instances[i]);
+		String instances[] = {
+								"instances/qbf200",
+								"instances/qbf400"};
+		Integer intensification_qtds_run[] = {500};
+		Integer intensification_qtds_to_tabu[] = {18};
+		
+		for (String instance : instances)
+		for(Integer localSearchMethod : localSearchMethods)
+		for(Integer tenure:tenures)
+		//for(Integer intensification_qtd_run : intensification_qtds_run)
+		//for(Integer intensification_qtd_to_tabu : intensification_qtds_to_tabu)
+		{
+			logger.info("----------------------------------------------------------------");
+			logger.info("Going to start a new parameter configuration");
+			logger.info("Execution for "+instance);
+			logger.info("Local search Method = "+(localSearchMethod==FIRST_IMPROVEMENT?"FIRST_IMPROVEMENT":"BEST_IMPROVEMENT"));
+			logger.info("Tenure = "+tenure);
+			//logger.info("Intensification run quantity = "+intensification_qtd_run);
+			//logger.info("Intensification to tabu qtd = "+intensification_qtd_to_tabu);
 			long startTime = System.currentTimeMillis();
-			TS_QBFPT tabusearch = new TS_QBFPT(logger, 50, iterations[i], OSCILATION_METHOD, BEST_IMPROVEMENT, instances[i]);
+			TS_QBFPT tabusearch = new TS_QBFPT(logger, tenure, 100000, DEFAULT_METHOD, localSearchMethod, instance);
 			Solution<Integer> bestSol = tabusearch.solve();
 			logger.info("maxVal = " + bestSol);
 			long endTime   = System.currentTimeMillis();
 			long totalTime = endTime - startTime;
-			logger.info("Time = "+(double)totalTime/(double)1000+" seg");	
+			logger.info("Time = "+(double)totalTime/(double)1000+" seg");
+			logger.info("\n\n\n");
 		}
+		
+		
+		
+
 	}
 
 }

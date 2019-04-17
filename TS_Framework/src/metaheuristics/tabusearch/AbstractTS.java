@@ -177,6 +177,8 @@ public abstract class AbstractTS<E> {
 		}
 	}
 
+	protected Logger logger;
+	
 	/**
 	 * Constructor for the AbstractTS class.
 	 * 
@@ -227,13 +229,30 @@ public abstract class AbstractTS<E> {
 		return this.listOfRecency.stream().filter(element -> val == element.getValue()).findAny().orElse(null);
 	}
 	
+	protected E getBestRemovalElementFromProibitedTriples(ProibitedTuple proibitedTuple)
+	{		
+		double minDeltaCost = Double.POSITIVE_INFINITY;
+		E element2Remove = null;
+		for(int i = 0; i < 3; i++)
+		{
+			Integer candToRemove = int2ProibitedTupleElement(i, proibitedTuple);
+			Double deltaCost = ObjFunction.evaluateRemovalCost((E) candToRemove, incumbentSol);
+			if(deltaCost < minDeltaCost) 
+			{
+				element2Remove = (E)candToRemove;
+				minDeltaCost = deltaCost;
+			}
+		}
+		
+		return element2Remove;		
+	}
+	
 	protected void repairSolution()
 	{
 		for(ProibitedTuple proibitedTuple : listOfProibitedTuples)
 		{
 			if(incumbentSol.indexOf(proibitedTuple.getX0()) != -1 && incumbentSol.indexOf(proibitedTuple.getX1()) != -1 && incumbentSol.indexOf(proibitedTuple.getX2()) != -1 ){
-                Random gerador = new Random(); 
-                Integer candToRemove = int2ProibitedTupleElement(gerador.nextInt(3), proibitedTuple);
+                Integer candToRemove = (Integer) getBestRemovalElementFromProibitedTriples(proibitedTuple);
                 incumbentSol.remove(incumbentSol.indexOf(candToRemove));
                                     
                 if(this.method == INTENSIFICATION_METHOD)
